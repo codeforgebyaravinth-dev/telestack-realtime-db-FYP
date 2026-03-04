@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telestack AENS Research Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1016;
+            --panel: rgba(255, 255, 255, 0.05);
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --text: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.1) 0%, transparent 100%);
+        }
+
+        h1 {
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+        }
+
+        main {
+            padding: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.5;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-unit {
+            font-size: 1rem;
+            opacity: 0.4;
+            margin-left: 0.2rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .status-row {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 0.8rem 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        .config-panel {
+            grid-column: 1 / -1;
+        }
+
+        input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: white;
+            font-size: 0.9rem;
+            width: 300px;
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>AENS Research Framework</h1>
+        <div class="subtitle">Adaptive Edge-Native State Synthesis &bull; Wasm Performance Proof</div>
+    </header>
+
+    <main>
+        <div class="status-row">
+            <div class="config">
+                <input type="text" id="endpoint" placeholder="Worker URL (e.g. https://...)" value="">
+                <button onclick="startVisualizer()">Connect Engine</button>
+            </div>
+            <div class="status-pill">
+                <div class="status-dot"></div>
+                <span id="conn-status">Waiting for Connection...</span>
+            </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="card">
+            <div class="card-title">AENS Adaptive Threshold</div>
+            <div class="metric-value"><span id="metric-threshold">0</span><span class="metric-unit">ms</span></div>
+            <div class="chart-container"><canvas id="chart-threshold"></canvas></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Velocity Index (Burst Detect)</div>
+            <div class="metric-value"><span id="metric-velocity">0</span><span class="metric-unit">ops/s</span></div>
+            <div class="chart-container"><canvas id="chart-velocity"></canvas></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Wasm Stability Score</div>
+            <div class="metric-value"><span id="metric-stability">0</span><span class="metric-unit">%</span></div>
+            <div class="chart-container"><canvas id="chart-stability"></canvas></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Coalescing Ratio</div>
+            <div class="metric-value"><span id="metric-ratio">0</span><span class="metric-unit">x</span></div>
+            <div class="chart-container"><canvas id="chart-ratio"></canvas></div>
+        </div>
+    </main>
+
+    <script>
+        let charts = {};
+        const MAX_DATA_PTS = 30;
+
+        function initChart(id, label, color) {
+            const ctx = document.getElementById(id).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(MAX_DATA_PTS).fill(''),
+                    datasets: [{
+                        label: label,
+                        data: Array(MAX_DATA_PTS).fill(0),
+                        borderColor: color,
+                        backgroundColor: color + '22',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function startVisualizer() {
+            const url = document.getElementById('endpoint').value.replace(/\/$/, '');
+            if (!url) return alert("Please enter valid URL");
+
+            document.getElementById('conn-status').innerText = "Streaming Wasm Telemetry...";
+
+            charts.threshold = initChart('chart-threshold', 'Threshold', '#6366f1');
+            charts.velocity = initChart('chart-velocity', 'Velocity', '#f59e0b');
+            charts.stability = initChart('chart-stability', 'Stability', '#10b981');
+            charts.ratio = initChart('chart-ratio', 'Ratio', '#c084fc');
+
+            setInterval(async () => {
+                try {
+                    const res = await fetch(`${url}/_research/telemetry`);
+                    const data = await res.json();
+
+                    const aens = data.metrics.aens;
+
+                    // Update Cards
+                    document.getElementById('metric-threshold').innerText = Math.round(aens.lastThreshold);
+                    document.getElementById('metric-velocity').innerText = Math.round(aens.lastVelocity);
+                    document.getElementById('metric-stability').innerText = Math.round(aens.lastStability * 100);
+
+                    const ratio = aens.totalBatches > 0 ? (aens.totalEventsCoalesced / aens.totalBatches).toFixed(1) : 0;
+                    document.getElementById('metric-ratio').innerText = ratio;
+
+                    // Update Charts
+                    updateChart(charts.threshold, aens.lastThreshold);
+                    updateChart(charts.velocity, aens.lastVelocity);
+                    updateChart(charts.stability, aens.lastStability * 100);
+                    updateChart(charts.ratio, parseFloat(ratio));
+
+                } catch (e) {
+                    console.error("Telemetry fetch failed", e);
+                }
+            }, 1000);
+        }
+
+        function updateChart(chart, val) {
+            chart.data.datasets[0].data.push(val);
+            chart.data.datasets[0].data.shift();
+            chart.update('none');
+        }
+
+        // Set default URL if possible
+        window.onload = () => {
+            const current = window.location.origin;
+            if (current.includes('workers.dev')) {
+                document.getElementById('endpoint').value = current;
+            }
+        };
+    </script>
+</body>
+
+</html>

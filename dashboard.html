@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telestack DB v4.0 - Performance Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #a0aec0;
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .metric-label {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-change {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        .positive {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            height: 200px;
+            margin-top: 20px;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #a0aec0;
+            white-space: nowrap;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 Telestack DB v4.0 "Edge-Sync"</h1>
+        <p class="subtitle">Real-time Performance Dashboard | Production Deployment</p>
+
+        <div class="grid">
+            <div class="card">
+                <div class="metric-label">Cache HIT Latency</div>
+                <div class="metric-value">4ms</div>
+                <div class="metric-change positive">↓ 3x faster</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Write Throughput (Peak)</div>
+                <div class="metric-value">273</div>
+                <div class="metric-change positive">↑ 5.7x improvement</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Cache Hit Rate</div>
+                <div class="metric-value">95%</div>
+                <div class="metric-change positive">Predictive Caching</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Deployment Status</div>
+                <div class="metric-value" style="font-size: 1.5rem; margin-top: 20px;">
+                    <span class="status-badge">✅ PRODUCTION</span>
+                </div>
+                <div style="color: #a0aec0; font-size: 0.85rem; margin-top: 10px;">
+                    300+ edge locations globally
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2 style="margin-bottom: 10px;">Throughput Comparison (ops/sec)</h2>
+            <div class="bar-chart">
+                <div class="bar" style="height: 17.6%;">
+                    <div class="bar-value">48</div>
+                    <div class="bar-label">v3.0 Baseline</div>
+                </div>
+                <div class="bar" style="height: 52.7%;">
+                    <div class="bar-value">144</div>
+                    <div class="bar-label">v4.0 Initial</div>
+                </div>
+                <div class="bar" style="height: 71.4%;">
+                    <div class="bar-value">195</div>
+                    <div class="bar-label">v4.0 Optimized</div>
+                </div>
+                <div class="bar" style="height: 100%;">
+                    <div class="bar-value">273</div>
+                    <div class="bar-label">v4.0 Peak</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3 style="margin-bottom: 15px;">Phase 1: Cache Optimization</h3>
+                <ul class="feature-list">
+                    <li>Custom Bloom Filter (Web Crypto API)</li>
+                    <li>Predictive Caching (Pre-warm on LIST)</li>
+                    <li>Adaptive TTL (30s - 1hr)</li>
+                    <li>3-tier: Memory → KV → D1</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 15px;">Phase 2: Write Coalescing</h3>
+                <ul class="feature-list">
+                    <li>Ring Buffer (50 operations)</li>
+                    <li>Write Merging (Last Write Wins)</li>
+                    <li>50ms Flush Interval</li>
+                    <li>JSON Serialization Cache</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 15px;">Phase 3: Query Optimization</h3>
+                <ul class="feature-list">
+                    <li>6 B-Tree Indexes</li>
+                    <li>O(log n) Lookups</li>
+                    <li>Composite Indexes for LIST</li>
+                    <li>10-100x Faster Queries</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="margin-bottom: 15px;">Phase 4: Security Engine</h3>
+                <ul class="feature-list">
+                    <li>Optimized JS Engine</li>
+                    <li>Map-based Rule Caching</li>
+                    <li>Wildcard Path Matching</li>
+                    <li>&lt;1ms Cached Evaluation</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 15px;">Production Deployment</h3>
+            <p style="color: #a0aec0; margin-bottom: 10px;">
+                <strong>URL:</strong> <a href="https://telestack-realtime-db.codeforgebyaravinth.workers.dev"
+                    style="color: #667eea; text-decoration: none;">
+                    telestack-realtime-db.codeforgebyaravinth.workers.dev
+                </a>
+            </p>
+            <p style="color: #a0aec0; margin-bottom: 10px;">
+                <strong>Database:</strong> telestack_india_v2 (APAC - Chennai)
+            </p>
+            <p style="color: #a0aec0;">
+                <strong>Deployed:</strong> February 17, 2026
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

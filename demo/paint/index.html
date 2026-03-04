@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telestack Paint | Indestructible Collaboration</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=Inter:wght@400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="dark-theme">
+    <div id="app">
+        <nav class="toolbar glass">
+            <div class="logo">TELESTACK<span>PAINT</span></div>
+            <div class="controls">
+                <input type="color" id="colorPicker" value="#3b82f6">
+                <input type="range" id="sizePicker" min="1" max="50" value="5">
+                <button id="clearBtn" class="btn-secondary">Clear</button>
+                <button id="chaosBtn" class="btn-primary">Chaos Mode</button>
+            </div>
+            <div class="status">
+                <span id="userCount">1 Connected</span>
+                <div class="status-dot green"></div>
+            </div>
+        </nav>
+
+        <canvas id="paintCanvas"></canvas>
+
+        <div class="metrics-overlay glass animate-up">
+            <h3>Backend Insights (AENS v7.5)</h3>
+            <div class="metric">
+                <label>Sync Mode:</label>
+                <span id="syncMode">Adaptive Coalescing</span>
+            </div>
+            <div class="metric">
+                <label>Buffer Window:</label>
+                <span id="bufferWindow">500ms</span>
+            </div>
+            <div class="metric">
+                <label>PVC Signal:</label>
+                <span id="pvcSignal">SYNC-LOCKED</span>
+            </div>
+            <div class="metric-graph">
+                <div id="velocityBar" style="width: 10%;"></div>
+            </div>
+            <p class="metric-hint">AENS is merging strokes to prevent D1 collisions.</p>
+        </div>
+
+        <div id="chaosOverlay" class="hidden">
+            <div class="chaos-content">
+                <h2>⚠️ CHAOS MODE ACTIVE</h2>
+                <p>Simulating 50+ concurrent painters on this single canvas document.</p>
+                <div class="chaos-stats">
+                    <span id="chaosWrites">Writes: 0</span>
+                    <span id="chaosSuccess">Success: 100%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>

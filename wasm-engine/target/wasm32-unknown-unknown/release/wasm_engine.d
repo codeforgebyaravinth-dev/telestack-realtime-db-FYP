@@ -1,0 +1,1 @@
+C:\Users\garag\OneDrive\Desktop\TelestackDB\TelestackrealtimeDB\wasm-engine\target\wasm32-unknown-unknown\release\wasm_engine.wasm: C:\Users\garag\OneDrive\Desktop\TelestackDB\TelestackrealtimeDB\wasm-engine\src\lib.rs

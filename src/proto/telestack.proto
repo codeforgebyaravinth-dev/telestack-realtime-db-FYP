@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package telestack.v1;
+
+service DocumentService {
+  // Get a single document by path
+  rpc GetDocument(GetDocumentRequest) returns (DocumentResponse);
+  
+  // Create or Update a document
+  rpc PutDocument(PutDocumentRequest) returns (DocumentResponse);
+  
+  // Delete a document
+  rpc DeleteDocument(DeleteDocumentRequest) returns (DeleteResponse);
+  
+  // List documents in a collection
+  rpc ListDocuments(ListDocumentsRequest) returns (ListDocumentsResponse);
+}
+
+message Document {
+  string path = 1;
+  string id = 2;
+  string workspace_id = 3;
+  string collection_name = 4;
+  string data = 5; // JSON string for now
+  int32 version = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message GetDocumentRequest {
+  string workspace_id = 1;
+  string path = 2;
+}
+
+message PutDocumentRequest {
+  string workspace_id = 1;
+  string path = 2;
+  string data = 3;
+  optional int32 expected_version = 4;
+}
+
+message DeleteDocumentRequest {
+  string workspace_id = 1;
+  string path = 2;
+}
+
+message ListDocumentsRequest {
+  string workspace_id = 1;
+  string collection = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message DocumentResponse {
+  Document document = 1;
+}
+
+message DeleteResponse {
+  bool success = 1;
+}
+
+message ListDocumentsResponse {
+  repeated Document documents = 1;
+  int32 total_count = 2;
+}

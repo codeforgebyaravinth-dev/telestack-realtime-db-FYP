@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telestack RealtimeDB | Distributed Control System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <!-- KaTeX for Mathematics -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
+</head>
+
+<body class="dark-theme">
+    <nav class="glass-nav">
+        <div class="logo">TELESTACK<span>DB</span></div>
+        <ul class="nav-links">
+            <li><a href="#research">Research</a></li>
+            <li><a href="#invention">Invention</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#benchmarks">Benchmarks</a></li>
+        </ul>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <h1 class="animate-up">The Future of <span class="gradient-text">Edge-Native</span> Distributed Systems</h1>
+            <p class="animate-up delay-1">Telestack RealtimeDB: A high-performance, feedback-controlled database engine
+                built for the Cloudflare Global Network.</p>
+            <div class="hero-stats animate-up delay-2">
+                <div class="stat">
+                    <span class="stat-value">427</span>
+                    <span class="stat-label">Ops/Sec</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">2ms</span>
+                    <span class="stat-label">Latency</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">100%</span>
+                    <span class="stat-label">Reliability</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <img src="../assets/hero_v1.png" alt="Telestack Core Visual" class="floating">
+        </div>
+    </header>
+
+    <main>
+        <section id="research" class="fade-in">
+            <div class="section-header">
+                <h2>The Research <span class="highlight">Pain Points</span></h2>
+                <p>Solving the fundamental bottlenecks of Edge Computing.</p>
+            </div>
+            <div class="grid">
+                <div class="card glass">
+                    <h3>The Collision Problem</h3>
+                    <p>Traditional D1/SQLite databases suffer from "Database Locked" errors under high write contention.
+                        Scaling horizontally often results in 70% transaction failure rates.</p>
+                </div>
+                <div class="card glass">
+                    <h3>Cold Start Latency</h3>
+                    <p>JavaScript-based authorization and cold starts add 50ms+ overhead. Telestack moves these
+                        computations to near-instantaneous WebAssembly.</p>
+                </div>
+                <div class="card glass">
+                    <h3>Reactive Cache Lags</h3>
+                    <p>Standard LRU caches are reactive. In real-time apps, this leads to stale data. We needed a
+                        proactive, "hear-signal" driven caching system.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="invention" class="fade-in">
+            <div class="section-header">
+                <h2>The Fundamental <span class="highlight">Invention</span></h2>
+                <p>AENS: Adaptive Edge-Native State Synthesis.</p>
+            </div>
+            <div class="invention-container">
+                <div class="invention-text">
+                    <h3>Beyond Traditional Batching</h3>
+                    <p>AENS v2.0 isn't just batching writes. It uses a <strong>Feedback Control Loop</strong> to
+                        synthesize user intent in the Wasm Runtime before ever hitting the disk.</p>
+                    <div class="formula-box glass">
+                        <h4>The Stability Equilibrium</h4>
+                        <p>$$T = \min\left( L_{max}, \frac{W_{base}}{\max(v, 1)} \cdot (1 + P) \cdot \ln(Q + 2)
+                            \right)$$</p>
+                    </div>
+                </div>
+                <div class="invention-visual">
+                    <img src="../assets/aens_engine_v1.png" alt="AENS Engine Flow">
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="fade-in">
+            <div class="section-header">
+                <h2>System <span class="highlight">Architecture</span></h2>
+                <p>The Quad-Layer Hybrid Bridge.</p>
+            </div>
+            <div class="arch-visual">
+                <img src="../assets/architecture_v1.png" alt="Global Architecture Map" class="glass-border">
+            </div>
+            <div class="arch-steps">
+                <div class="step">
+                    <div class="step-num">01</div>
+                    <p><strong>Global Ingress:</strong> Geo-aware routing via Edge Workers.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">02</div>
+                    <p><strong>Wasm Core:</strong> Near-zero latency Auth and CRDT merging.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">03</div>
+                    <p><strong>Shadow Buffering:</strong> AENS synthesizes concurrent state.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">04</div>
+                    <p><strong>Durable Commit:</strong> Single, atomic batch write to D1 Shards.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 Telestack Research & Engineering. All Rights Reserved.</p>
+        <p>Built for the Industrial-Grade Edge.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

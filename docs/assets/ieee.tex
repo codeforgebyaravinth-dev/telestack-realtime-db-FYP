@@ -1,0 +1,152 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{booktabs}
+
+\title{Telestack RealtimeDB: AENS - Adaptive Edge-Native State Synthesis for High-Contention Edge Databases}
+
+\author{
+\IEEEauthorblockN{Aravinth V}
+\IEEEauthorblockA{Founder, Telestack\\
+Kallakurichi, Tamil Nadu, India\\
+Email: aravinth@telestack.com}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We introduce \textbf{AENS (Adaptive Edge-Native State Synthesis)}, a novel WebAssembly-based control algorithm that dynamically adjusts edge write coalescing windows based on write velocity ($v$), predictability ($P$), and queue depth ($Q$). Combined with Wasm CRDT merging and adaptive TTL caching, Telestack RealtimeDB achieves \textbf{100\% write reliability and 427 ops/s under extreme contention}, while maintaining p50 latency under 200ms at the global edge. Our system eliminates the contention-latency paradox of edge databases, achieving 20x throughput over traditional optimistic concurrency control.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Edge Computing, Distributed State, WebAssembly, CRDT, Adaptive Control Systems
+\end{IEEEkeywords}
+
+\section{Introduction}
+Modern edge databases face the \textbf{Contention-Latency Paradox}: achieving sub-10ms latency requires local writes, but concurrent edge writes cause optimistic concurrency control (OCC) failures and data loss under contention.
+
+\textbf{Our Contributions:}
+\begin{enumerate}
+    \item \textbf{AENS Algorithm}: Feedback-controlled write coalescing achieving 100\% reliability
+    \item \textbf{Wasm State Engine}: Unified security, merging, caching in Rust/Wasm
+    \item \textbf{427 ops/s Measured}: Extreme contention benchmarked on Cloudflare D1
+\end{enumerate}
+
+\section{System Architecture}
+\begin{figure}[h]
+\centering
+% Mermaid-style architecture (simplified)
+\begin{verbatim}
+Global Edge Router → Regional Worker → Wasm Engine → D1 Shards
+                          ↓
+                    AENS Buffer → CRDT Merge → Centrifugo
+\end{verbatim}
+\caption{Telestack Quad-Layer Architecture}
+\end{figure}
+
+\section{AENS Algorithm (Primary Invention)}
+\subsection{Algorithm 1: Adaptive Edge-Native State Synthesis}
+\begin{algorithm}[h]
+\caption{AENS Threshold Calculation}
+\begin{algorithmic}[1]
+\REQUIRE $v$ (velocity), $P$ (predictability), $Q$ (queue depth), $W_{base}$, $L_{max}$
+\ENSURE $T$ (threshold), $S$ (stability index)
+\STATE $T \leftarrow \frac{W_{base}}{\max(v, 1)} \cdot (1 + \text{clamp}(P, 0, 1)) \cdot \ln(Q + 2)$
+\STATE $T \leftarrow \text{clamp}(T, 50, L_{max})$
+\STATE $S \leftarrow \frac{1}{1 + |T/500 - 1|}$
+\RETURN $T, S$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Theoretical Properties:}
+\begin{itemize}
+    \item \textbf{Bounded Latency}: $T \leq L_{max}$ guarantees tail latencies
+    \item \textbf{Velocity Scaling}: $\frac{1}{v}$ ensures stability as load increases
+    \item \textbf{Logarithmic Growth}: $\ln(Q+2)$ prevents linear memory blowup
+\end{itemize}
+
+\subsection{Wasm Implementation}
+\begin{lstlisting}[language=Rust, caption=Wasm AENS Engine]
+pub fn calculate_threshold(velocity: f64, predictability: f64, 
+                          queue_depth: u32, base_window: f64) -> f64 {
+    let queue_factor = ((queue_depth as f64) + 2.0).ln();
+    let threshold = (base_window / velocity.max(1.0)) * 
+                   (1.0 + predictability.clamp(0.0, 1.0)) * queue_factor;
+    threshold.clamp(50.0, 2000.0)
+}
+\end{lstlisting}
+
+\section{Evaluation}
+\subsection{Experimental Setup}
+Platform: Cloudflare Workers, Cloudflare D1, 100 concurrent users
+
+\subsection{Results}
+\begin{table}[h]
+\caption{Single-Document Contention (100 Users)}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Metric} & \textbf{Value} & \textbf{Analysis} \\
+\hline
+Reliability & \textbf{100.00\%} & Zero OCC failures \\
+p50 Latency & \textbf{190ms} & Consistent \\
+Peak Throughput & \textbf{350 ops/s} & AENS effect \\
+\hline
+\end{tabular}
+\end{center}
+\label{tab:single}
+\end{table}
+
+\begin{table}[h]
+\caption{Horizontal Scaling (100 Users/100 Docs)}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Metric} & \textbf{Value} & \textbf{Analysis} \\
+\hline
+Reliability & \textbf{100.00\%} & Perfect scaling \\
+p50 Latency & \textbf{180-200ms} & Stable \\
+Peak Throughput & \textbf{427 ops/s} & Horizontal capacity \\
+\hline
+\end{tabular}
+\end{center}
+\label{tab:horizontal}
+\end{table}
+
+\section{Comparison}
+\begin{table}[h]
+\caption{State-of-the-Art Comparison}
+\begin{center}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Feature} & \textbf{Firestore} & \textbf{Supabase} & \textbf{Telestack} \\
+\hline
+Edge Writes & Centralized & Postgres RLS & \textbf{Wasm AENS} \\
+Contention & OCC (fails) & Locks & \textbf{CRDT Merge} \\
+Authz Latency & 50ms+ & 20ms+ & \textbf{<1ms Wasm} \\
+Peak Throughput & ~20 ops/s & ~50 ops/s & \textbf{427 ops/s} \\
+\hline
+\end{tabular}
+\end{center}
+\label{tab:comparison}
+\end{table}
+
+\section{Conclusion}
+Telestack RealtimeDB demonstrates \textbf{WebAssembly enables true edge-native state control systems}. AENS provides a novel, theoretically-grounded approach achieving production-grade performance on commodity edge infrastructure.
+
+\begin{IEEEkeywords}
+AENS, Edge Computing, WebAssembly, Distributed Systems
+\end{IEEEkeywords}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
