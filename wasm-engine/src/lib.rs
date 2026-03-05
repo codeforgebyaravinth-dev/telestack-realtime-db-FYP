@@ -89,12 +89,11 @@ pub struct CrdtEngine;
 #[wasm_bindgen]
 impl CrdtEngine {
     /// Merges two JSON strings. The `incoming` JSON takes precedence over `existing`
-    /// but only at the precise leaf node level. This prevents full document overwrites
-    /// when multiple users edit different fields of the same document concurrently.
+    /// but only at the precise leaf node level.
     #[wasm_bindgen]
     pub fn merge_json(existing: &str, incoming: &str) -> String {
-        let mut base_val: Value = serde_json::from_str(existing).unwrap_or(Value::Null);
-        let new_val: Value = serde_json::from_str(incoming).unwrap_or(Value::Null);
+        let mut base_val: Value = serde_json::from_str(existing).unwrap_or(Value::Object(serde_json::Map::new()));
+        let new_val: Value = serde_json::from_str(incoming).unwrap_or(Value::Object(serde_json::Map::new()));
 
         CrdtEngine::deep_merge(&mut base_val, new_val);
         base_val.to_string()
@@ -104,10 +103,22 @@ impl CrdtEngine {
         match (a, b) {
             (Value::Object(ref mut a_map), Value::Object(b_map)) => {
                 for (k, v) in b_map {
-                    CrdtEngine::deep_merge(a_map.entry(k).or_insert(Value::Null), v);
+                    // ACSC Semantic Enhancement: If it's a numeric increment, we sum them
+                    // Convention: keys starting with "++" are treated as relative increments
+                    if k.starts_with("++") && v.is_number() {
+                        let actual_key = &k[2..];
+                        let increment = v.as_f64().unwrap_or(0.0);
+                        let entry = a_map.entry(actual_key.to_string()).or_insert(Value::from(0.0));
+                        if let Some(current_val) = entry.as_f64() {
+                            *entry = Value::from(current_val + increment);
+                        } else {
+                            *entry = Value::from(increment);
+                        }
+                    } else {
+                        CrdtEngine::deep_merge(a_map.entry(k).or_insert(Value::Null), v);
+                    }
                 }
             }
-            // If it's an array or primitive, incoming (b) wins (simplest CRDT LWW for leaves)
             (a_ref, b_val) => {
                 *a_ref = b_val;
             }
@@ -116,7 +127,55 @@ impl CrdtEngine {
 }
 
 // ==========================================
-// 3. SECURITY RULE AST EVALUATOR
+// 3. ACT ENGINE (ADAPTIVE CONTENTION TOPOLOGY)
+// ==========================================
+#[wasm_bindgen]
+pub struct ActEngine;
+
+#[wasm_bindgen]
+impl ActEngine {
+    /// Computes contention score: C = αv + βq + γσ
+    #[wasm_bindgen]
+    pub fn calculate_score(velocity: f64, queue_depth: u32, variance: f64) -> f64 {
+        0.5 * velocity + 0.3 * (queue_depth as f64) + 0.2 * variance
+    }
+
+    #[wasm_bindgen]
+    pub fn classify(score: f64) -> String {
+        if score < 20.0 { "COLD".to_string() }
+        else if score < 50.0 { "WARM".to_string() }
+        else if score < 100.0 { "HOT".to_string() }
+        else { "CRITICAL".to_string() }
+    }
+}
+
+// ==========================================
+// 3.1 ACSC ENGINE (ADAPTIVE CONFLICT-FREE STATE COMPRESSION)
+// ==========================================
+#[wasm_bindgen]
+pub struct AcscEngine;
+
+#[wasm_bindgen]
+impl AcscEngine {
+    /// Compresses a batch of JSON operations into a single semantic state.
+    /// ACSC reduces O(N) ops into O(1) state representation.
+    #[wasm_bindgen]
+    pub fn compress_batch(json_batch: &str) -> String {
+        let ops: Value = serde_json::from_str(json_batch).unwrap_or(Value::Array(vec![]));
+        let mut final_state = Value::Object(serde_json::Map::new());
+
+        if let Value::Array(op_list) = ops {
+            for op in op_list {
+                CrdtEngine::deep_merge(&mut final_state, op);
+            }
+        }
+
+        final_state.to_string()
+    }
+}
+
+// ==========================================
+// 4. SECURITY RULE AST EVALUATOR
 // ==========================================
 #[wasm_bindgen]
 pub struct SecurityEvaluator;
@@ -188,7 +247,7 @@ impl SecurityEvaluator {
 }
 
 // ==========================================
-// 4. AENS & ADAPTIVE TTL ENGINE
+// 5. AENS & ADAPTIVE TTL ENGINE
 // ==========================================
 #[wasm_bindgen]
 pub struct AensEngine;
@@ -225,7 +284,7 @@ impl AensEngine {
 }
 
 // ==========================================
-// 5. PVC (PREDICTIVE VECTOR CLOCKS)
+// 6. PVC (PREDICTIVE VECTOR CLOCKS)
 // ==========================================
 #[wasm_bindgen]
 pub struct PvcEngine;

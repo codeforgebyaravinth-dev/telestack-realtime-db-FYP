@@ -69,20 +69,22 @@ graph TD
         Sec["🛡️ Security Evaluator"]
         Bloom["🔍 Bloom Filter Engine"]
         AENS["🚀 AENS Synthesis Engine"]
-        CRDT["🧬 JSON CRDT Merger"]
+        ACSC["🧬 ACSC Synthesis Merger"]
+        ACT["📊 ACT Contention Scorer"]
     end
     
     Request["📥 Incoming Request"] --> Sec
     Sec -->|Authorized| Bloom
-    Bloom -->|Existence Check| AENS
-    AENS -->|Coalesce| CRDT
-    CRDT -->|Synthesized State| Response["📤 Durable Write"]
+    Bloom -->|Heat Signal| ACT
+    ACT -->|Scoring| AENS
+    AENS -->|Synthesize| ACSC
+    ACSC -->|Synthesized State| Response["📤 Durable Write (Delayed Flush)"]
 ```
 
 ---
 
 ## 4. 🔄 Data Flow: The Write-Synthesis Path
-Visualizing the AENS v2.0 lifecycle.
+Visualizing the AENS v2.0 lifecycle with **Delayed Edge Synthesis**.
 
 ```mermaid
 stateDiagram-v2
@@ -98,33 +100,38 @@ stateDiagram-v2
     }
     
     Wait --> WasmSynthesizer: Threshold Reached
-    WasmSynthesizer --> CRDTMerge: Deep JSON Synthesis
-    CRDTMerge --> D1Gateway: Atomic Batch Commit
-    D1Gateway --> [*]: Success
+    WasmSynthesizer --> ACSCMerge: Semantic State Compression
+    ACSCMerge --> DelayedFlush: ctx.waitUntil Loop
+    DelayedFlush --> D1Gateway: Atomic Batch Commit
+    D1Gateway --> [*]: 100% Integrity Success
 ```
 
 ---
 
 ## 5. 💾 Persistence & Durability Architecture
-How the system ensures no data is ever lost.
+How the system handles the **Edge Memory Paradox**.
 
 ```mermaid
 graph TD
-    subgraph "Tier 1: Hot (Edge Memory)"
-        L1["Local Memory Cache"]
+    subgraph "Tier 1: Volatile (Edge Memory)"
+        L1["Active Wasm Buffer"]
     end
     
-    subgraph "Tier 2: Warm (D1 Database)"
+    subgraph "Tier 2: Transitional (Background Loop)"
+        Delayed["Delayed Edge Synthesis"]
+    end
+    
+    subgraph "Tier 3: Durable (D1 Database)"
         D1["D1 SQLite Shards"]
     end
     
-    subgraph "Tier 3: Cold (Global KV)"
+    subgraph "Tier 4: Cold (Global KV)"
         KV["Global Snapshot Store"]
     end
 
-    L1 -- "AENS Sync" --> D1
-    D1 -- "Cron Trigger (30m)" --> KV
-    KV -- "Restore/Pre-warm" --> L1
+    L1 -- "Request Finish" --> Delayed
+    Delayed -- "Safety Flush" --> D1
+    D1 -- "Cron Backup" --> KV
 ```
 
 ---

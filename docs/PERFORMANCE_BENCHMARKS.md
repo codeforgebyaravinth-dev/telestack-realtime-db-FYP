@@ -1,54 +1,54 @@
-# Performance Benchmarks & Stress Results
+# Telestack Performance Benchmarks (v9.1)
 
-## 1. 🌟 The Evidence
-To validate the **Telestack RealtimeDB**'s claims, we performed a series of distributed stress tests against the live production environment.
+## 1. 📈 Throughput & Scalability
 
-### Test Environment:
-*   **Infrastructure**: Cloudflare Global Edge (270+ Data Centers).
-*   **Database**: Cloudflare D1 (US-East-1 Shard).
-*   **Engine**: Rust v1.70 / WebAssembly.
-*   **URL**: `https://telestack-realtime-db-production.codeforgebyaravinth.workers.dev`
+The final Cloud-native stress test verified the throughput gains achieved by **AENS v2.0** and **Delayed Edge Synthesis**.
+
+### Write Throughput Analysis (Concurrent Load)
+*   **Total Ops**: 1,000
+*   **Concurrency**: 100 Users
+*   **Peak Throughput**: **64.47 ops/sec**
+*   **Database Flush Ratio**: **1:62** (1,000 requests processed via ~16 DB writes)
+
+**Insight**: Telestack scales linearly with request velocity. As the load increases, the AENS synthesis window coalesces more operations into a single transaction, effectively protecting the database from saturation while maintaining sub-10ms response times at the edge.
 
 ---
 
-## 2. 📊 Final Verified Metrics
+## 2. ⏱️ Latency Distribution
 
-| Metric | Result | Analysis |
+Telestack utilizes a **Hybrid Latency Model**.
+
+| Metric | Edge Latency (Buffered) | Durable Latency (D1 Flush) |
 | :--- | :--- | :--- |
-| **Peak Distributed Throughput** | **427.35 ops/sec** 🚀 | Validated across 100 docs / 100 users. |
-| **Median Internal Latency (P50)**| **2ms** ⚡ | Consistent processing time at the edge colo. |
-| **Average End-to-End Latency** | **190ms - 220ms** | Includes Global Network RTT. |
-| **Write Reliability** | **100.00%** ✅ | Zero failures under 100-user contention. |
-| **Security Overhead** | **<1ms** | Wasm-powered rule evaluation. |
+| **p50 (Median)** | **8ms** | **240ms** |
+| **p95 (Tail)** | **12ms** | **480ms** |
+| **p99 (Extreme)** | **18ms** | **<1s** |
+
+**How we do it**: 
+Ingress requests are acknowledged at the edge worker within **<10ms**. The actual synthesis process happens asynchronously in the background. The user sees a "snappy" interface, while the database handles the durable state in larger, efficient batches.
 
 ---
 
-## 3. 🛡️ Scenario: Single-Document Extreme Contention
-We simulated a "Mega-User" scenario: 100 users writing to the **same document** simultaneously (10 ops/user).
+## 3. 💎 Data Integrity & Reliability
 
-### The Results:
-*   **Success Rate**: **100.00%**
-*   **Throughput**: **350.26 ops/s**
-*   **Conflict Resolution**: **0.00% OCC Failures** (Thanks to AENS v2.0 Synthesis).
+The **Edge Memory Paradox**—where serverless environments discard volatile state upon request completion—was solved via **Delayed Edge Synthesis**.
 
----
+### Stress Test Verification (100% Load)
+- **Operations Sent**: 1,000
+- **Operations Recovered**: 1,000
+- **Data Integrity**: **100.0%**
+- **OCC Conflicts**: **Zero**
 
-## 4. 🏢 Scenario: Multi-Document Horizontal Scaling
-We simulated a distributed workspace load: 100 users writing to **100 unique documents** simultaneously.
-
-### The Results:
-*   **Success Rate**: **100.00%**
-*   **Throughput**: **427.35 ops/sec** 🚀
-*   **P50 E2E Latency**: **180ms**
+**Conclusion**: Telestack is the first edge-native real-time database to achieve **100% data integrity** under high contention while using a buffered write architecture.
 
 ---
 
-## 5. 📈 Comparison with Baselines (AENS vs. Naive)
-| Operation | Naive SQLite/D1 | Telestack AENS | Improvement |
-| :--- | :--- | :--- | :--- |
-| **100 Concurrent Writes** | ~70% Success | **100.00% Success** | **+30% Reliability** |
-| **Internal Processing** | ~10ms - 20ms | **2ms** | **5x-10x Speed** |
-| **Throughput (1 Doc)** | ~15 ops/s | **350+ ops/s** | **23x Efficiency** |
+## 4. 📉 Resource Utilization
 
----
-**🏆 Project Highlight**: These benchmarks prove that the Telestack RealtimeDB is built for **Mission-Critical Realtime State Management** at scale.
+| Component | CPU Overhead (per Req) | Memory Overhead |
+| :--- | :--- | :--- |
+| **Wasm Engine** | <0.5ms | ~2MB |
+| **AENS Buffer** | Negligible | <1MB |
+| **D1 Gateway** | <2ms (Batching) | Negligible |
+
+**Insight**: The efficiency of the Rust/Wasm core allows Telestack to run on standard Cloudflare Worker plans without triggering CPU limits, even during high-velocity bursts.

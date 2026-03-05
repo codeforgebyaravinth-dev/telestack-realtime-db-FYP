@@ -29,7 +29,7 @@ export class SecurityEngine {
             return this.ruleCache.get(cacheKey)!;
         }
 
-        const result = this.evaluate('read', path, auth, null);
+        const result = await this.evaluate('read', path, auth, null);
         this.ruleCache.set(cacheKey, result);
         return result;
     }
@@ -42,28 +42,36 @@ export class SecurityEngine {
             return this.ruleCache.get(cacheKey)!;
         }
 
-        const result = this.evaluate('write', path, auth, data);
+        const result = await this.evaluate('write', path, auth, data);
+        console.log(`[SecurityEngine] Write check for ${path}: ${result ? 'PASS' : 'FAIL'} (Auth: ${JSON.stringify(auth)})`);
         this.ruleCache.set(cacheKey, result);
         return result;
     }
 
-    private evaluate(op: 'read' | 'write', path: string, auth: any, data: any): boolean {
+    private async evaluate(op: 'read' | 'write', path: string, auth: any, data: any): Promise<boolean> {
+        if (!this.wasmReady) await this.wasmInitPromise;
         const segments = path.split('/').filter(s => s);
         let current = this.rules;
 
-        // Traverse rule tree
+        // Traverse rule tree with selective inheritance
         for (const seg of segments) {
             if (current[seg]) {
                 current = current[seg];
             } else if (current['$wildcard']) {
                 current = current['$wildcard'];
             } else {
-                return false;
+                // If we hit a dead end, but the CURRENT level has a rule, we use it!
+                // This allows top-level $wildcard to apply to deep paths.
+                break;
             }
         }
 
-        const ruleString = current[op];
-        if (!ruleString) return false;
+        // If 'current' is still an object, check for the specific op
+        const ruleString = typeof current === 'object' ? (current[op] || current['$wildcard']?.[op]) : null;
+        if (!ruleString) {
+            console.warn(`[SecurityEngine] NO RULE found for ${path} (${op})`);
+            return false;
+        }
 
         // Build context cleanly for WASM AST
         const contextJson = JSON.stringify({
@@ -74,7 +82,11 @@ export class SecurityEngine {
         // 🚀 Evaluate via WebAssembly AST! No eval(), perfectly safe.
         // We now use depth-aware detection for advanced hierarchy research.
         const maxDepth = 10; // Research constraint
-        return SecurityEvaluator.can_access_at_depth(ruleString, contextJson, segments.length, maxDepth);
+        const allowed = SecurityEvaluator.can_access_at_depth(ruleString, contextJson, segments.length, maxDepth);
+        if (!allowed) {
+            console.warn(`[SecurityEngine] DENIED: Path=${path}, Op=${op}, Rule=${ruleString}, Context=${contextJson}`);
+        }
+        return allowed;
     }
 }
 
